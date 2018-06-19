@@ -84,12 +84,15 @@ def chal6():
 
     for i in range(4):
         key_len = dists[i][0]
+        print("Length: ", key_len)
         final_keys = find_keys_from_keysize(cipher, key_len)
+
+        print(final_keys)
         for key in final_keys:
             print(xor_key(cipher, key))
 
 
-def get_average_hamming_distances(cipher, num_samples=2):
+def get_average_hamming_distances(cipher, num_samples=4):
     dists = []
     for ksize in range(2, 40):
         total_dist = 0
@@ -102,7 +105,6 @@ def get_average_hamming_distances(cipher, num_samples=2):
 
 
 def find_keys_from_keysize(cipher, key_len):
-    print("Length: ", key_len)
     transposed = transpose_blocks(cipher, key_len)
 
     final_keys = [b'']
@@ -110,7 +112,6 @@ def find_keys_from_keysize(cipher, key_len):
         (top, top_score) = find_xor_candidates(data)
 
         if len(top) > 1:
-            print("FOUND MULTIPLE CANDIDATES")
 
             old_final_keys = list(final_keys)
             new_final_keys = []
@@ -121,12 +122,9 @@ def find_keys_from_keysize(cipher, key_len):
                 new_final_keys += new_keys
             final_keys = new_final_keys
         else:
-            print(top[0][1])
-
             for i, k in enumerate(final_keys):
                 final_keys[i] = k + top[0][1].encode()
 
-    print(final_keys)
     return final_keys
 
 

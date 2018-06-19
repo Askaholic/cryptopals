@@ -37,7 +37,8 @@ def ascii_freq_hist_likelyhood_score(hist):
         "lowercase": 4,
         "uppercase": 3,
         "numbers": 2,
-        "other": 1
+        "other": 1,
+        "non-ascii": -5
     }
     for i, num in enumerate(hist):
         char = chr(i)
@@ -50,6 +51,8 @@ def ascii_freq_hist_likelyhood_score(hist):
             curr_score = weights['numbers']
         elif char in string.printable:
             curr_score = weights['other']
+        else:
+            curr_score = weights['non-ascii']
 
         score += curr_score * num
     return score

@@ -2,7 +2,16 @@ import base64
 import string
 from binascii import hexlify, unhexlify
 
-from lib import ascii_freq, xor, xor_key, hamming_dist, blocks_of
+from lib import (
+    ascii_freq,
+    ascii_freq_hist,
+    ascii_freq_hist_likelyhood_score,
+    blocks_of,
+    hamming_dist,
+    print_hist,
+    xor,
+    xor_key
+)
 
 
 def chal1():
@@ -34,7 +43,8 @@ def find_xor_candidates(binary_input, top_score=0, top=None):
         top = []
     for char in string.printable:
         xored_result = xor(binary_input, char.encode() * len(binary_input))
-        score = ascii_freq(xored_result)
+        score = ascii_freq_hist_likelyhood_score(ascii_freq_hist(xored_result))
+        # score = ascii_freq(xored_result)
 
         if score > top_score:
             top_score = score
@@ -72,11 +82,11 @@ def chal6():
 
     # print(dists)
 
-    # for i in range(4):
-    #     key_len = dists[i][0]
-    #     final_keys = find_keys_from_keysize(cipher, key_len)
-    #     for key in final_keys:
-    #         print(xor_key(cipher, key))
+    for i in range(4):
+        key_len = dists[i][0]
+        final_keys = find_keys_from_keysize(cipher, key_len)
+        for key in final_keys:
+            print(xor_key(cipher, key))
 
 
 def get_average_hamming_distances(cipher, num_samples=2):
@@ -131,3 +141,15 @@ def transpose_blocks(cipher, block_size):
 
 if __name__ == '__main__':
     chal6()
+
+    # strings = [
+    #     b"ASJDKLAJSKDJHALSKJDHLASKJD",
+    #     xor_key(b"The lazy brown fox jumps over the quick hedgehog", b"?")
+    # ]
+    # for s in strings:
+    #     print("String: ", s)
+    #     hist = ascii_freq_hist(s)
+    #     print_hist(hist)
+    #     print("Score: ", ascii_freq_hist_likelyhood_score(hist))
+    #
+    # print(find_xor_candidates(strings[1]))

@@ -23,6 +23,38 @@ def ascii_freq(string_input):
     return score
 
 
+def ascii_freq_hist(string_input):
+    hist = [0] * 127
+    for char in string_input:
+        if chr(char) in string.printable:
+            hist[char] += 1
+    return hist
+
+
+def ascii_freq_hist_likelyhood_score(hist):
+    score = 0
+    weights = {
+        "lowercase": 4,
+        "uppercase": 3,
+        "numbers": 2,
+        "other": 1
+    }
+    for i, num in enumerate(hist):
+        char = chr(i)
+        curr_score = 0
+        if char in string.ascii_lowercase:
+            curr_score = weights['lowercase']
+        elif char in string.ascii_uppercase or char == " ":
+            curr_score = weights['uppercase']
+        elif char in string.digits or char == "_":
+            curr_score = weights['numbers']
+        elif char in string.printable:
+            curr_score = weights['other']
+
+        score += curr_score * num
+    return score
+
+
 def hamming_dist(s1, s2):
     assert len(s1) == len(s2)
 
@@ -39,6 +71,12 @@ def hamming_dist(s1, s2):
                 dist += 1
 
     return dist
+
+
+def print_hist(hist, divisor=1):
+    for i, num in enumerate(hist):
+        if num > 0:
+            print(chr(i), ":", "*" * (num // divisor))
 
 
 def blocks_of(s, size=16):

@@ -1,6 +1,8 @@
 import base64
 import string
 from binascii import hexlify, unhexlify
+from Crypto.Cipher import AES
+
 
 from lib import (
     ascii_freq,
@@ -73,11 +75,11 @@ def chal5():
 
 
 def chal6():
-    cipher = b""
+    ciphertxt = b""
     with open("6.txt", 'r') as f:
-        cipher = base64.b64decode(f.read().replace('\n', ''))
+        ciphertxt = base64.b64decode(f.read().replace('\n', ''))
 
-    dists = get_average_hamming_distances(cipher)
+    dists = get_average_hamming_distances(ciphertxt)
     dists.sort(key=lambda x: x[1])
 
     # print(dists)
@@ -85,27 +87,27 @@ def chal6():
     for i in range(4):
         key_len = dists[i][0]
         print("Length: ", key_len)
-        final_keys = find_keys_from_keysize(cipher, key_len)
+        final_keys = find_keys_from_keysize(ciphertxt, key_len)
 
         print(final_keys)
         for key in final_keys:
-            print(xor_key(cipher, key))
+            print(xor_key(ciphertxt, key))
 
 
-def get_average_hamming_distances(cipher, num_samples=4):
+def get_average_hamming_distances(ciphertxt, num_samples=4):
     dists = []
     for ksize in range(2, 40):
         total_dist = 0
         for i in range(num_samples):
-            t1 = cipher[i * ksize:i * ksize + ksize]
-            t2 = cipher[i * ksize + ksize:i * ksize + ksize * 2]
+            t1 = ciphertxt[i * ksize:i * ksize + ksize]
+            t2 = ciphertxt[i * ksize + ksize:i * ksize + ksize * 2]
             total_dist += hamming_dist(t1, t2)
         dists.append((ksize, total_dist / (num_samples * ksize)))
     return dists
 
 
-def find_keys_from_keysize(cipher, key_len):
-    transposed = transpose_blocks(cipher, key_len)
+def find_keys_from_keysize(ciphertxt, key_len):
+    transposed = transpose_blocks(ciphertxt, key_len)
 
     final_keys = [b'']
     for data in transposed:
@@ -128,26 +130,20 @@ def find_keys_from_keysize(cipher, key_len):
     return final_keys
 
 
-def transpose_blocks(cipher, block_size):
+def transpose_blocks(ciphertxt, block_size):
     transposed = [b""] * block_size
 
-    for block in blocks_of(cipher, size=block_size):
+    for block in blocks_of(ciphertxt, size=block_size):
         for i, byte in enumerate(block):
             transposed[i] += bytes([byte])
     return transposed
 
 
-if __name__ == '__main__':
-    chal6()
+def chal7():
+    cipher = AES.new("YELLOW SUBMARINE")
+    with open("7.txt", 'r') as f:
+        print(cipher.decrypt(base64.b64decode(f.read().replace("\n", ""))))
 
-    # strings = [
-    #     b"ASJDKLAJSKDJHALSKJDHLASKJD",
-    #     xor_key(b"The lazy brown fox jumps over the quick hedgehog", b"?")
-    # ]
-    # for s in strings:
-    #     print("String: ", s)
-    #     hist = ascii_freq_hist(s)
-    #     print_hist(hist)
-    #     print("Score: ", ascii_freq_hist_likelyhood_score(hist))
-    #
-    # print(find_xor_candidates(strings[1]))
+
+if __name__ == '__main__':
+    chal7()

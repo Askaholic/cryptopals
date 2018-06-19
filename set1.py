@@ -2,7 +2,7 @@ import base64
 import string
 from binascii import hexlify, unhexlify
 
-from transcode import ascii_freq, xor, xor_key
+from lib import ascii_freq, xor, xor_key, hamming_dist, blocks_of
 
 
 def chal1():
@@ -62,5 +62,72 @@ def chal5():
     print(hexlify(xor_key(string_input.encode(), b'ICE')))
 
 
+def chal6():
+    cipher = b""
+    with open("6.txt", 'r') as f:
+        cipher = base64.b64decode(f.read().replace('\n', ''))
+
+    dists = get_average_hamming_distances(cipher)
+    dists.sort(key=lambda x: x[1])
+
+    # print(dists)
+
+    # for i in range(4):
+    #     key_len = dists[i][0]
+    #     final_keys = find_keys_from_keysize(cipher, key_len)
+    #     for key in final_keys:
+    #         print(xor_key(cipher, key))
+
+
+def get_average_hamming_distances(cipher, num_samples=2):
+    dists = []
+    for ksize in range(2, 40):
+        total_dist = 0
+        for i in range(num_samples):
+            t1 = cipher[i * ksize:i * ksize + ksize]
+            t2 = cipher[i * ksize + ksize:i * ksize + ksize * 2]
+            total_dist += hamming_dist(t1, t2)
+        dists.append((ksize, total_dist / (num_samples * ksize)))
+    return dists
+
+
+def find_keys_from_keysize(cipher, key_len):
+    print("Length: ", key_len)
+    transposed = transpose_blocks(cipher, key_len)
+
+    final_keys = [b'']
+    for data in transposed:
+        (top, top_score) = find_xor_candidates(data)
+
+        if len(top) > 1:
+            print("FOUND MULTIPLE CANDIDATES")
+
+            old_final_keys = list(final_keys)
+            new_final_keys = []
+            for (_, key) in top:
+                new_keys = list(old_final_keys)
+                for i, k in enumerate(new_keys):
+                    new_keys[i] = k + key.encode()
+                new_final_keys += new_keys
+            final_keys = new_final_keys
+        else:
+            print(top[0][1])
+
+            for i, k in enumerate(final_keys):
+                final_keys[i] = k + top[0][1].encode()
+
+    print(final_keys)
+    return final_keys
+
+
+def transpose_blocks(cipher, block_size):
+    transposed = [b""] * block_size
+
+    for block in blocks_of(cipher, size=block_size):
+        for i, byte in enumerate(block):
+            transposed[i] += bytes([byte])
+    return transposed
+
+
 if __name__ == '__main__':
-    chal5()
+    chal6()
